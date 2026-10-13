@@ -1,6 +1,6 @@
 # react-native-dynamic-skeleton-generation
 
-Skeletons containers that will analyze dynamically your component and will generate a skeleton for it.that will dynamically analyze your component and in runtime create a skeleton for it
+Skeleton container that analyzes your rendered component at runtime and generates a matching skeleton for it.
 
 ## Installation
 
