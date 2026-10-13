@@ -1,7 +1,7 @@
 {
   "name": "react-native-dynamic-skeleton-generation",
   "version": "0.1.0",
-  "description": "Skeletons containers that will analyze dynamically your component and will generate a skeleton for it.that will dynamically analyze your component and in runtime create a skeleton for it",
+  "description": "Skeleton container that analyzes your rendered component at runtime and generates a matching skeleton for it",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
   "exports": {
@@ -45,7 +45,11 @@
   "keywords": [
     "react-native",
     "ios",
-    "android"
+    "android",
+    "skeleton",
+    "skeleton-loader",
+    "loading",
+    "placeholder"
   ],
   "repository": {
     "type": "git",
