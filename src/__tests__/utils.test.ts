@@ -1,10 +1,6 @@
-import { describe, expect, it, jest } from '@jest/globals';
-import { collectBones } from '../SkeletonContainer';
-import type { Bone, NodeTraits } from '../SkeletonContainer';
-
-jest.mock('react-native-reanimated', () =>
-  require('react-native-reanimated/mock')
-);
+import { describe, expect, it } from '@jest/globals';
+import { collectBones } from '../utils';
+import type { Bone, NodeTraits } from '../types';
 
 type FakeNodeFlags = {
   isScrollable?: boolean;
