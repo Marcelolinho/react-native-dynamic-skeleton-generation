@@ -1,6 +1,6 @@
 {
   "name": "react-native-dynamic-skeleton-generation",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Skeleton container that analyzes your rendered component at runtime and generates a matching skeleton for it",
   "main": "./lib/module/index.js",
   "types": "./lib/typescript/src/index.d.ts",
