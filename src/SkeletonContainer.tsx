@@ -3,41 +3,31 @@ import { StyleSheet, View } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import Animated, { FadeOut, css } from 'react-native-reanimated';
 import { useSkeletonBones } from './useSkeletonBones';
-import type { Bone } from './types';
-
-export type SkeletonAnimation = 'pulse' | 'none';
+import { useSkeletonOptions } from './useSkeletonOptions';
+import type { Bone, PresetSelection, SkeletonOptions } from './types';
 
 export type SkeletonContainerProps = {
   isLoading: boolean;
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
-  boneColor?: string;
-  boneBorderRadius?: number;
-  animation?: SkeletonAnimation;
-  fadeSwap?: boolean;
-  maxLayer?: number;
-};
+} & PresetSelection &
+  SkeletonOptions;
 
 const FADE_DURATION_MS = 200;
 const PULSE_DURATION_MS = 800;
 const PULSE_MIN_OPACITY = 0.4;
-const DEFAULT_BONE_COLOR = '#E1E9EE';
-const DEFAULT_BONE_BORDER_RADIUS = 4;
-const DEFAULT_MAX_LAYER = Infinity;
 
 export function SkeletonContainer({
   isLoading,
   children,
   style,
-  boneColor = DEFAULT_BONE_COLOR,
-  boneBorderRadius = DEFAULT_BONE_BORDER_RADIUS,
-  animation = 'pulse',
-  fadeSwap = false,
-  maxLayer = DEFAULT_MAX_LAYER,
+  ...optionProps
 }: SkeletonContainerProps) {
+  const { boneColor, boneBorderRadius, animation, fadeSwap, ...walkOptions } =
+    useSkeletonOptions(optionProps);
   const { containerRef, bones, measureBones } = useSkeletonBones(
     isLoading,
-    maxLayer
+    walkOptions
   );
 
   function renderBone(bone: Bone, index: number) {

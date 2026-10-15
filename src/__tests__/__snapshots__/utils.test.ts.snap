@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`collectBones keeps the bones of the fixture tree unchanged without geometry options 1`] = `
+[
+  {
+    "height": 24,
+    "width": 24,
+    "x": 16,
+    "y": 26,
+  },
+  {
+    "height": 20,
+    "width": 200,
+    "x": 48,
+    "y": 28,
+  },
+  {
+    "height": 20,
+    "width": 16,
+    "x": 320,
+    "y": 28,
+  },
+  {
+    "height": 24,
+    "width": 296,
+    "x": 32,
+    "y": 92,
+  },
+  {
+    "height": 44,
+    "width": 140,
+    "x": 184,
+    "y": 124,
+  },
+  {
+    "height": 48,
+    "width": 328,
+    "x": 16,
+    "y": 316,
+  },
+  {
+    "height": 48,
+    "width": 328,
+    "x": 16,
+    "y": 380,
+  },
+  {
+    "height": 20,
+    "width": 20,
+    "x": 40,
+    "y": 134,
+  },
+  {
+    "height": 16,
+    "width": 80,
+    "x": 64,
+    "y": 136,
+  },
+  {
+    "height": 16,
+    "width": 328,
+    "x": 16,
+    "y": 292,
+  },
+]
+`;

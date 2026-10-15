@@ -2,9 +2,9 @@ import { useLayoutEffect, useState } from 'react';
 import type { HostInstance } from 'react-native';
 import { useAnimatedRef } from 'react-native-reanimated';
 import { areBonesEqual, collectHostBones } from './utils';
-import type { Bone } from './types';
+import type { Bone, WalkOptions } from './types';
 
-export function useSkeletonBones(isLoading: boolean, maxLayer: number) {
+export function useSkeletonBones(isLoading: boolean, walkOptions: WalkOptions) {
   const containerRef = useAnimatedRef<HostInstance>();
   const [bones, setBones] = useState<Bone[]>([]);
 
@@ -19,7 +19,7 @@ export function useSkeletonBones(isLoading: boolean, maxLayer: number) {
     const measuredBones = collectHostBones(
       container,
       parent.getBoundingClientRect(),
-      maxLayer
+      walkOptions
     );
 
     setBones((currentBones) =>
