@@ -28,6 +28,8 @@ type ToggleProps = {
 
 const AVATAR_URI = 'https://reactnative.dev/img/tiny_logo.png';
 
+const MAX_LAYER_OPTIONS = [Infinity, 1, 2, 3];
+
 const LOADING_PROFILE: Profile = {
   name: 'Loading name',
   bio: 'Loading a short biography line',
@@ -54,6 +56,13 @@ function Toggle({ label, onPress }: ToggleProps) {
   );
 }
 
+function nextMaxLayer(maxLayer: number): number {
+  const nextIndex =
+    (MAX_LAYER_OPTIONS.indexOf(maxLayer) + 1) % MAX_LAYER_OPTIONS.length;
+
+  return MAX_LAYER_OPTIONS[nextIndex] ?? Infinity;
+}
+
 function renderPost({ item }: { item: Post }) {
   return (
     <View style={styles.post}>
@@ -66,6 +75,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [animation, setAnimation] = useState<SkeletonAnimation>('pulse');
   const [fadeSwap, setFadeSwap] = useState(false);
+  const [maxLayer, setMaxLayer] = useState(Infinity);
   const profile = isLoading ? LOADING_PROFILE : LOADED_PROFILE;
   const posts = isLoading ? [] : LOADED_POSTS;
 
@@ -84,11 +94,16 @@ export default function App() {
           label={`fadeSwap: ${fadeSwap}`}
           onPress={() => setFadeSwap(!fadeSwap)}
         />
+        <Toggle
+          label={`maxLayer: ${maxLayer}`}
+          onPress={() => setMaxLayer(nextMaxLayer(maxLayer))}
+        />
       </View>
       <SkeletonContainer
         isLoading={isLoading}
         animation={animation}
         fadeSwap={fadeSwap}
+        maxLayer={maxLayer}
         style={styles.content}
       >
         <View style={styles.header}>

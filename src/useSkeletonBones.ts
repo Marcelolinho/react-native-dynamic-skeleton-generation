@@ -4,7 +4,7 @@ import { useAnimatedRef } from 'react-native-reanimated';
 import { areBonesEqual, collectHostBones } from './utils';
 import type { Bone } from './types';
 
-export function useSkeletonBones(isLoading: boolean) {
+export function useSkeletonBones(isLoading: boolean, maxLayer: number) {
   const containerRef = useAnimatedRef<HostInstance>();
   const [bones, setBones] = useState<Bone[]>([]);
 
@@ -18,7 +18,8 @@ export function useSkeletonBones(isLoading: boolean) {
 
     const measuredBones = collectHostBones(
       container,
-      parent.getBoundingClientRect()
+      parent.getBoundingClientRect(),
+      maxLayer
     );
 
     setBones((currentBones) =>

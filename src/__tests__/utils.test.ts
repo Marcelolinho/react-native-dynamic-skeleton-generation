@@ -29,8 +29,8 @@ function fakeNode(
   return { ...flags, children, getBoundingClientRect: () => bounds };
 }
 
-function collect(root: FakeNode): Bone[] {
-  return collectBones(root, traits);
+function collect(root: FakeNode, maxLayer = Infinity): Bone[] {
+  return collectBones(root, traits, maxLayer);
 }
 
 describe('collectBones', () => {
@@ -144,5 +144,75 @@ describe('collectBones', () => {
     ]);
 
     expect(collect(root)).toEqual([rect(20, 15, 60, 30)]);
+  });
+
+  it('turns the first node below the max layer into a single bone', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(0, 0, 300, 300), [
+        fakeNode(rect(10, 10, 280, 200), [
+          fakeNode(rect(20, 20, 200, 100), [fakeNode(rect(30, 30, 50, 20))]),
+        ]),
+      ]),
+    ]);
+
+    expect(collect(root, 2)).toEqual([rect(20, 20, 200, 100)]);
+  });
+
+  it('turns every top-level child into a bone when the max layer is zero', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(0, 0, 300, 100), [fakeNode(rect(10, 10, 50, 20))]),
+      fakeNode(rect(0, 120, 300, 100), [fakeNode(rect(10, 130, 50, 20))]),
+    ]);
+
+    expect(collect(root, 0)).toEqual([
+      rect(0, 0, 300, 100),
+      rect(0, 120, 300, 100),
+    ]);
+  });
+
+  it('keeps atomic nodes and leaves within the max layer unchanged', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(10, 10, 200, 40), [fakeNode(rect(10, 10, 50, 20))], {
+        isAtomic: true,
+      }),
+      fakeNode(rect(10, 60, 100, 20)),
+    ]);
+
+    expect(collect(root, 1)).toEqual([
+      rect(10, 10, 200, 40),
+      rect(10, 60, 100, 20),
+    ]);
+  });
+
+  it('turns a scrollable node below the max layer into one bone of its visible area', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(0, 100, 300, 200), [fakeNode(rect(0, 100, 300, 0))], {
+        isScrollable: true,
+      }),
+    ]);
+
+    expect(collect(root, 0)).toEqual([rect(0, 100, 300, 200)]);
+  });
+
+  it('gives a zero-size node below the max layer a fallback bone', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(10, 10, 0, 0), [fakeNode(rect(10, 10, 50, 20))]),
+    ]);
+
+    expect(collect(root, 0)).toEqual([rect(10, 10, 120, 16)]);
+  });
+
+  it('collapses only the subtrees deeper than the max layer', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(10, 10, 100, 20)),
+      fakeNode(rect(0, 40, 300, 200), [
+        fakeNode(rect(0, 40, 300, 100), [fakeNode(rect(10, 50, 60, 20))]),
+      ]),
+    ]);
+
+    expect(collect(root, 1)).toEqual([
+      rect(10, 10, 100, 20),
+      rect(0, 40, 300, 100),
+    ]);
   });
 });

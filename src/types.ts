@@ -20,6 +20,7 @@ export type NodeTraits<Node> = {
 export type QueueEntry<Node> = {
   node: Node;
   clip: Rect;
+  depth: number;
 };
 
 export interface HostNode extends SkeletonNode<HostNode> {

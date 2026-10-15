@@ -33,6 +33,9 @@ While `isLoading` is true the children stay mounted but hidden, and a bone is dr
 | `boneBorderRadius` | `number` | `4` | Corner radius of every bone |
 | `animation` | `'pulse' \| 'none'` | `'pulse'` | Bone animation |
 | `fadeSwap` | `boolean` | `false` | Cross-fades from skeleton to content when loading ends |
+| `maxLayer` | `number` | `Infinity` | Deepest layer the walker expands; every view below it collapses into a single bone |
+
+Layers count rendered host views: the direct children of `SkeletonContainer` are layer 1, their children layer 2, and so on. With `maxLayer={2}`, a `View` nested three levels deep becomes one bone covering its whole area. Lists use internal wrapper views, so a `FlatList` item sits a few layers below the list itself.
 
 
 ## Known limitations

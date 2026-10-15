@@ -15,6 +15,7 @@ export type SkeletonContainerProps = {
   boneBorderRadius?: number;
   animation?: SkeletonAnimation;
   fadeSwap?: boolean;
+  maxLayer?: number;
 };
 
 const FADE_DURATION_MS = 200;
@@ -22,6 +23,7 @@ const PULSE_DURATION_MS = 800;
 const PULSE_MIN_OPACITY = 0.4;
 const DEFAULT_BONE_COLOR = '#E1E9EE';
 const DEFAULT_BONE_BORDER_RADIUS = 4;
+const DEFAULT_MAX_LAYER = Infinity;
 
 export function SkeletonContainer({
   isLoading,
@@ -31,8 +33,12 @@ export function SkeletonContainer({
   boneBorderRadius = DEFAULT_BONE_BORDER_RADIUS,
   animation = 'pulse',
   fadeSwap = false,
+  maxLayer = DEFAULT_MAX_LAYER,
 }: SkeletonContainerProps) {
-  const { containerRef, bones, measureBones } = useSkeletonBones(isLoading);
+  const { containerRef, bones, measureBones } = useSkeletonBones(
+    isLoading,
+    maxLayer
+  );
 
   function renderBone(bone: Bone, index: number) {
     return (

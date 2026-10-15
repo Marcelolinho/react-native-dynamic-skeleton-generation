@@ -46,8 +46,12 @@ function withFallbackSize(rect: Rect): Rect {
   };
 }
 
-function withClip<Node>(nodes: Node[], clip: Rect): QueueEntry<Node>[] {
-  return nodes.map((node) => ({ node, clip }));
+function withClip<Node>(
+  nodes: Node[],
+  clip: Rect,
+  depth: number
+): QueueEntry<Node>[] {
+  return nodes.map((node) => ({ node, clip, depth }));
 }
 
 function pushWhenVisible(bones: Bone[], bone: Bone | null) {
@@ -107,20 +111,23 @@ const HOST_TRAITS: NodeTraits<HostNode> = {
 
 export function collectBones<Node extends SkeletonNode<Node>>(
   root: Node,
-  traits: NodeTraits<Node>
+  traits: NodeTraits<Node>,
+  maxLayer: number
 ): Bone[] {
   const measuredBones: Bone[] = [];
   const fallbackCandidates: Bone[] = [];
   const queue = withClip(
     Array.from(root.children),
-    root.getBoundingClientRect()
+    root.getBoundingClientRect(),
+    1
   );
 
-  for (const { node, clip } of queue) {
+  for (const { node, clip, depth } of queue) {
     const rect = node.getBoundingClientRect();
     const children = Array.from(node.children);
+    const canExpand = depth <= maxLayer;
 
-    if (traits.isScrollable(node)) {
+    if (canExpand && traits.isScrollable(node)) {
       const scrollClip = intersect(clip, rect);
 
       if (!scrollClip) {
@@ -138,9 +145,9 @@ export function collectBones<Node extends SkeletonNode<Node>>(
         pushWhenVisible(measuredBones, listItemBone(scrollClip));
       }
 
-      queue.push(...withClip(populatedChildren, scrollClip));
-    } else if (children.length > 0 && !traits.isAtomic(node)) {
-      queue.push(...withClip(children, clip));
+      queue.push(...withClip(populatedChildren, scrollClip, depth + 1));
+    } else if (canExpand && children.length > 0 && !traits.isAtomic(node)) {
+      queue.push(...withClip(children, clip, depth + 1));
     } else if (rect.width > 0 && rect.height > 0) {
       pushWhenVisible(measuredBones, intersect(rect, clip));
     } else {
@@ -154,8 +161,12 @@ export function collectBones<Node extends SkeletonNode<Node>>(
   return withAcceptedFallbacks(measuredBones, fallbackCandidates);
 }
 
-export function collectHostBones(container: HostNode, origin: Rect): Bone[] {
-  return collectBones(container, HOST_TRAITS).map((bone) => ({
+export function collectHostBones(
+  container: HostNode,
+  origin: Rect,
+  maxLayer: number
+): Bone[] {
+  return collectBones(container, HOST_TRAITS, maxLayer).map((bone) => ({
     ...bone,
     x: bone.x - origin.x,
     y: bone.y - origin.y,
