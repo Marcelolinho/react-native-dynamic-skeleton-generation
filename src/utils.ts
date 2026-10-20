@@ -69,12 +69,38 @@ function canMerge(a: Rect, b: Rect, mergeGap: number): boolean {
   return isOnSameLine(a, b) && (gap <= mergeGap || gap < 0);
 }
 
+function startsBelow(bone: Rect, other: Rect): boolean {
+  return other.y > bone.y + bone.height;
+}
+
+function findLinePartner(
+  sortedBones: Bone[],
+  bone: Bone,
+  index: number,
+  mergeGap: number
+): number {
+  for (
+    let otherIndex = index + 1;
+    otherIndex < sortedBones.length;
+    otherIndex++
+  ) {
+    const other = sortedBones[otherIndex];
+
+    if (!other || startsBelow(bone, other)) {
+      return -1;
+    }
+
+    if (canMerge(bone, other, mergeGap)) {
+      return otherIndex;
+    }
+  }
+
+  return -1;
+}
+
 function mergeFirstPair(bones: Bone[], mergeGap: number): boolean {
   for (const [index, bone] of bones.entries()) {
-    const partnerIndex = bones.findIndex(
-      (other, otherIndex) =>
-        otherIndex > index && canMerge(bone, other, mergeGap)
-    );
+    const partnerIndex = findLinePartner(bones, bone, index, mergeGap);
     const partner = bones[partnerIndex];
 
     if (partner) {

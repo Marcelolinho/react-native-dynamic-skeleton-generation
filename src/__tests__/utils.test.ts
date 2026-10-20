@@ -302,6 +302,19 @@ describe('collectBones with mergeGap', () => {
     expect(collect(root, { mergeGap: 4 })).toEqual([rect(0, 0, 158, 20)]);
   });
 
+  it('merges a tall bone with a later bone that starts inside its height', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(0, 0, 40, 60)),
+      fakeNode(rect(200, 10, 50, 20)),
+      fakeNode(rect(44, 30, 50, 30)),
+    ]);
+
+    expect(collect(root, { mergeGap: 4 })).toEqual([
+      rect(0, 0, 94, 60),
+      rect(200, 10, 50, 20),
+    ]);
+  });
+
   it('returns the bones ordered by line and then by column', () => {
     const root = fakeNode(rect(0, 0, 300, 600), [
       fakeNode(rect(16, 60, 100, 20)),
