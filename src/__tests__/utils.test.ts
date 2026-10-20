@@ -1,4 +1,4 @@
-import { describe, expect, it } from '@jest/globals';
+import { describe, expect, it, jest } from '@jest/globals';
 import { collectBones } from '../utils';
 import type { Bone, NodeTraits, WalkOptions } from '../types';
 
@@ -302,6 +302,19 @@ describe('collectBones with mergeGap', () => {
     expect(collect(root, { mergeGap: 4 })).toEqual([rect(0, 0, 158, 20)]);
   });
 
+  it('merges a tall bone with a later bone that starts inside its height', () => {
+    const root = fakeNode(rect(0, 0, 300, 600), [
+      fakeNode(rect(0, 0, 40, 60)),
+      fakeNode(rect(200, 10, 50, 20)),
+      fakeNode(rect(44, 30, 50, 30)),
+    ]);
+
+    expect(collect(root, { mergeGap: 4 })).toEqual([
+      rect(0, 0, 94, 60),
+      rect(200, 10, 50, 20),
+    ]);
+  });
+
   it('returns the bones ordered by line and then by column', () => {
     const root = fakeNode(rect(0, 0, 300, 600), [
       fakeNode(rect(16, 60, 100, 20)),
@@ -457,5 +470,30 @@ describe('collectBones with surfaceDepth', () => {
       rect(32, 32, 296, 40),
       rect(32, 88, 296, 20),
     ]);
+  });
+});
+
+describe('collectBones measuring', () => {
+  function measuredNodes(root: FakeNode): FakeNode[] {
+    return [root, ...root.children.flatMap(measuredNodes)];
+  }
+
+  it('measures every node once per walk, even when collapseBelow checks its children', () => {
+    const root = fakeNode(rect(0, 0, 400, 600), [
+      fakeNode(rect(16, 16, 328, 44), [
+        fakeNode(rect(16, 16, 100, 44)),
+        fakeNode(rect(128, 16, 100, 44)),
+      ]),
+    ]);
+    const nodes = measuredNodes(root);
+    const measures = nodes.map((node) =>
+      jest.spyOn(node, 'getBoundingClientRect')
+    );
+
+    collect(root, { collapseBelow: 56 });
+
+    for (const measure of measures) {
+      expect(measure).toHaveBeenCalledTimes(1);
+    }
   });
 });

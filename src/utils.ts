@@ -69,12 +69,38 @@ function canMerge(a: Rect, b: Rect, mergeGap: number): boolean {
   return isOnSameLine(a, b) && (gap <= mergeGap || gap < 0);
 }
 
+function startsBelow(bone: Rect, other: Rect): boolean {
+  return other.y > bone.y + bone.height;
+}
+
+function findLinePartner(
+  sortedBones: Bone[],
+  bone: Bone,
+  index: number,
+  mergeGap: number
+): number {
+  for (
+    let otherIndex = index + 1;
+    otherIndex < sortedBones.length;
+    otherIndex++
+  ) {
+    const other = sortedBones[otherIndex];
+
+    if (!other || startsBelow(bone, other)) {
+      return -1;
+    }
+
+    if (canMerge(bone, other, mergeGap)) {
+      return otherIndex;
+    }
+  }
+
+  return -1;
+}
+
 function mergeFirstPair(bones: Bone[], mergeGap: number): boolean {
   for (const [index, bone] of bones.entries()) {
-    const partnerIndex = bones.findIndex(
-      (other, otherIndex) =>
-        otherIndex > index && canMerge(bone, other, mergeGap)
-    );
+    const partnerIndex = findLinePartner(bones, bone, index, mergeGap);
     const partner = bones[partnerIndex];
 
     if (partner) {
@@ -110,19 +136,33 @@ function hasTightChildren(children: Rect[], maxGap: number): boolean {
   );
 }
 
+function rectMeasurer<Node extends SkeletonNode<Node>>() {
+  const rects = new Map<Node, Rect>();
+
+  return (node: Node): Rect => {
+    const cached = rects.get(node);
+
+    if (cached) {
+      return cached;
+    }
+
+    const rect = node.getBoundingClientRect();
+    rects.set(node, rect);
+    return rect;
+  };
+}
+
 function shouldCollapse<Node extends SkeletonNode<Node>>(
   rect: Rect,
   children: Node[],
-  { collapseBelow, mergeGap }: WalkOptions
+  { collapseBelow, mergeGap }: WalkOptions,
+  measure: (node: Node) => Rect
 ): boolean {
   return (
     collapseBelow !== undefined &&
     rect.height > 0 &&
     rect.height <= collapseBelow &&
-    hasTightChildren(
-      children.map((child) => child.getBoundingClientRect()),
-      mergeGap ?? DEFAULT_TIGHT_GAP
-    )
+    hasTightChildren(children.map(measure), mergeGap ?? DEFAULT_TIGHT_GAP)
   );
 }
 
@@ -239,6 +279,7 @@ export function collectBones<Node extends SkeletonNode<Node>>(
   const { maxLayer, mergeGap, surfaceDepth } = walkOptions;
   const measuredBones: Bone[] = [];
   const fallbackCandidates: Bone[] = [];
+  const measure = rectMeasurer<Node>();
   const queue = withClip(
     Array.from(root.children),
     root.getBoundingClientRect(),
@@ -247,7 +288,7 @@ export function collectBones<Node extends SkeletonNode<Node>>(
   );
 
   for (const { node, clip, depth, surfaceLayer } of queue) {
-    const rect = node.getBoundingClientRect();
+    const rect = measure(node);
     const children = Array.from(node.children);
     const canExpand =
       depth <= maxLayer && isWithinSurfaceDepth(surfaceLayer, surfaceDepth);
@@ -278,7 +319,7 @@ export function collectBones<Node extends SkeletonNode<Node>>(
       canExpand &&
       children.length > 0 &&
       !traits.isAtomic(node) &&
-      !shouldCollapse(rect, children, walkOptions)
+      !shouldCollapse(rect, children, walkOptions, measure)
     ) {
       queue.push(...withClip(children, clip, depth + 1, nextSurfaceLayer));
     } else if (rect.width > 0 && rect.height > 0) {

@@ -1,14 +1,18 @@
-import { useLayoutEffect, useState } from 'react';
+import { useCallback, useLayoutEffect, useState } from 'react';
 import type { HostInstance } from 'react-native';
 import { useAnimatedRef } from 'react-native-reanimated';
 import { areBonesEqual, collectHostBones } from './utils';
 import type { Bone, WalkOptions } from './types';
 
-export function useSkeletonBones(isLoading: boolean, walkOptions: WalkOptions) {
+export function useSkeletonBones(
+  isLoading: boolean,
+  { maxLayer, mergeGap, collapseBelow, surfaceDepth }: WalkOptions,
+  content: unknown
+) {
   const containerRef = useAnimatedRef<HostInstance>();
   const [bones, setBones] = useState<Bone[]>([]);
 
-  function measureBones() {
+  const measureBones = useCallback(() => {
     const container = containerRef.current;
     const parent = container?.parentElement;
 
@@ -19,15 +23,22 @@ export function useSkeletonBones(isLoading: boolean, walkOptions: WalkOptions) {
     const measuredBones = collectHostBones(
       container,
       parent.getBoundingClientRect(),
-      walkOptions
+      { maxLayer, mergeGap, collapseBelow, surfaceDepth }
     );
 
     setBones((currentBones) =>
       areBonesEqual(currentBones, measuredBones) ? currentBones : measuredBones
     );
-  }
+  }, [
+    isLoading,
+    containerRef,
+    maxLayer,
+    mergeGap,
+    collapseBelow,
+    surfaceDepth,
+  ]);
 
-  useLayoutEffect(measureBones);
+  useLayoutEffect(measureBones, [measureBones, content]);
 
   return { containerRef, bones, measureBones };
 }
