@@ -110,19 +110,33 @@ function hasTightChildren(children: Rect[], maxGap: number): boolean {
   );
 }
 
+function rectMeasurer<Node extends SkeletonNode<Node>>() {
+  const rects = new Map<Node, Rect>();
+
+  return (node: Node): Rect => {
+    const cached = rects.get(node);
+
+    if (cached) {
+      return cached;
+    }
+
+    const rect = node.getBoundingClientRect();
+    rects.set(node, rect);
+    return rect;
+  };
+}
+
 function shouldCollapse<Node extends SkeletonNode<Node>>(
   rect: Rect,
   children: Node[],
-  { collapseBelow, mergeGap }: WalkOptions
+  { collapseBelow, mergeGap }: WalkOptions,
+  measure: (node: Node) => Rect
 ): boolean {
   return (
     collapseBelow !== undefined &&
     rect.height > 0 &&
     rect.height <= collapseBelow &&
-    hasTightChildren(
-      children.map((child) => child.getBoundingClientRect()),
-      mergeGap ?? DEFAULT_TIGHT_GAP
-    )
+    hasTightChildren(children.map(measure), mergeGap ?? DEFAULT_TIGHT_GAP)
   );
 }
 
@@ -239,6 +253,7 @@ export function collectBones<Node extends SkeletonNode<Node>>(
   const { maxLayer, mergeGap, surfaceDepth } = walkOptions;
   const measuredBones: Bone[] = [];
   const fallbackCandidates: Bone[] = [];
+  const measure = rectMeasurer<Node>();
   const queue = withClip(
     Array.from(root.children),
     root.getBoundingClientRect(),
@@ -247,7 +262,7 @@ export function collectBones<Node extends SkeletonNode<Node>>(
   );
 
   for (const { node, clip, depth, surfaceLayer } of queue) {
-    const rect = node.getBoundingClientRect();
+    const rect = measure(node);
     const children = Array.from(node.children);
     const canExpand =
       depth <= maxLayer && isWithinSurfaceDepth(surfaceLayer, surfaceDepth);
@@ -278,7 +293,7 @@ export function collectBones<Node extends SkeletonNode<Node>>(
       canExpand &&
       children.length > 0 &&
       !traits.isAtomic(node) &&
-      !shouldCollapse(rect, children, walkOptions)
+      !shouldCollapse(rect, children, walkOptions, measure)
     ) {
       queue.push(...withClip(children, clip, depth + 1, nextSurfaceLayer));
     } else if (rect.width > 0 && rect.height > 0) {
