@@ -27,7 +27,8 @@ export function SkeletonContainer({
     useSkeletonOptions(optionProps);
   const { containerRef, bones, measureBones } = useSkeletonBones(
     isLoading,
-    walkOptions
+    walkOptions,
+    children
   );
 
   function renderBone(bone: Bone, index: number) {
